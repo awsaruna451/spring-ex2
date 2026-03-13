@@ -1,0 +1,67 @@
+2026-03-04 11:40:45 [SpringApplicationShutdownHook] INFO  [:] [spring-ex2] o.s.boot.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-03-04 11:40:47 [tomcat-shutdown] INFO  [:] [spring-ex2] o.s.boot.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-03-04 11:40:51 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Starting SpringEx2Application using Java 17.0.2 with PID 20953 (/Users/administrator/git/spring-ex2/target/classes started by administrator in /Users/administrator/git/spring-ex2)
+2026-03-04 11:40:51 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - No active profile set, falling back to 1 default profile: "default"
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8181 (http)
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-03-04 11:40:52 [main] INFO  [:] [spring-ex2] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1197 ms
+2026-03-04 11:40:53 [main] INFO  [:] [spring-ex2] o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-03-04 11:40:53 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:40:53 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8181 (http) with context path '/'
+2026-03-04 11:40:53 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Started SpringEx2Application in 2.606 seconds (process running for 3.097)
+2026-03-04 11:41:15 [http-nio-8181-exec-2] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-04 11:41:15 [http-nio-8181-exec-2] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-03-04 11:41:15 [http-nio-8181-exec-2] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-03-04 11:41:15 [http-nio-8181-exec-2] INFO  [fde755e4764d32ca1e0f7217cef2e452:646073ae87ce74cd] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:41:15 [http-nio-8181-exec-2] WARN  [fde755e4764d32ca1e0f7217cef2e452:646073ae87ce74cd] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:45:21 [http-nio-8181-exec-4] INFO  [e8d89804a89f09ac32455fe353ca590f:499158f012307f3b] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:45:21 [http-nio-8181-exec-4] WARN  [e8d89804a89f09ac32455fe353ca590f:499158f012307f3b] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:49:41 [SpringApplicationShutdownHook] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-03-04 11:49:43 [tomcat-shutdown] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-03-04 11:49:45 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Starting SpringEx2Application using Java 17.0.2 with PID 21014 (/Users/administrator/git/spring-ex2/target/classes started by administrator in /Users/administrator/git/spring-ex2)
+2026-03-04 11:49:45 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - No active profile set, falling back to 1 default profile: "default"
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8181 (http)
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1192 ms
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8181 (http) with context path '/'
+2026-03-04 11:49:47 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Started SpringEx2Application in 2.475 seconds (process running for 2.925)
+2026-03-04 11:50:00 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-04 11:50:00 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-03-04 11:50:00 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-03-04 11:50:00 [http-nio-8181-exec-1] INFO  [0a543b831e8b56317e146ec5f89474e2:19d47de45b00eddf] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:50:00 [http-nio-8181-exec-1] WARN  [0a543b831e8b56317e146ec5f89474e2:19d47de45b00eddf] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:51:06 [http-nio-8181-exec-3] INFO  [93edd7aed60d9ce14ed14fdcb011d32e:2d56e0b35b209ef2] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:51:06 [http-nio-8181-exec-3] WARN  [93edd7aed60d9ce14ed14fdcb011d32e:2d56e0b35b209ef2] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:52:11 [SpringApplicationShutdownHook] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-03-04 11:52:13 [tomcat-shutdown] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-03-04 11:52:15 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Starting SpringEx2Application using Java 17.0.2 with PID 21045 (/Users/administrator/git/spring-ex2/target/classes started by administrator in /Users/administrator/git/spring-ex2)
+2026-03-04 11:52:15 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - No active profile set, falling back to 1 default profile: "default"
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8181 (http)
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1109 ms
+2026-03-04 11:52:16 [main] INFO  [:] [spring-ex2] o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-03-04 11:52:17 [main] INFO  [:] [spring-ex2] o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8181"]
+2026-03-04 11:52:17 [main] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8181 (http) with context path '/'
+2026-03-04 11:52:17 [main] INFO  [:] [spring-ex2] com.aruna.SpringEx2Application - Started SpringEx2Application in 2.434 seconds (process running for 2.865)
+2026-03-04 11:52:23 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-03-04 11:52:23 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-03-04 11:52:23 [http-nio-8181-exec-1] INFO  [:] [spring-ex2] o.s.web.servlet.DispatcherServlet - Completed initialization in 3 ms
+2026-03-04 11:52:23 [http-nio-8181-exec-1] INFO  [2e1f57d6816a3d7031041a9dabd33be5:3b9569fa0e786da3] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 11:52:23 [http-nio-8181-exec-1] WARN  [2e1f57d6816a3d7031041a9dabd33be5:3b9569fa0e786da3] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 12:54:50 [http-nio-8181-exec-3] INFO  [398829b7b85b21a9cc7d35097fc6e108:55ff59f87415c030] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 12:54:50 [http-nio-8181-exec-3] WARN  [398829b7b85b21a9cc7d35097fc6e108:55ff59f87415c030] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 12:58:54 [http-nio-8181-exec-5] INFO  [8282fcb173066a9b81503a1223222a51:f113c1c7303bfc10] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 12:58:54 [http-nio-8181-exec-5] WARN  [8282fcb173066a9b81503a1223222a51:f113c1c7303bfc10] [spring-ex2] c.aruna.controller.ExampleController - Initiate the spring-ex2 api
+2026-03-04 13:21:12 [SpringApplicationShutdownHook] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-03-04 13:21:14 [tomcat-shutdown] INFO  [:] [spring-ex2] o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
