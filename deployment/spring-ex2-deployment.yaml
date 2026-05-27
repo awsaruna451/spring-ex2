@@ -15,6 +15,11 @@ spec:
     metadata:
       labels:
         app: spring-ex2
+      annotations:                                  # ← ADDED
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8181"                  # ← port 8181 (your app port)
+        prometheus.io/job: "spring-ex2"
 
     spec:
       securityContext:
@@ -23,8 +28,8 @@ spec:
         fsGroup: 1001
 
       containers:
-        - name: spring-ex
-          image: aruna451/spring-ex2:2.0
+        - name: spring-ex2
+          image: aruna451/spring-ex2:5.0
           imagePullPolicy: Always
 
           ports:
@@ -33,7 +38,6 @@ spec:
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: dev
-
             - name: JAVA_OPTS
               value: "-Xms512m -Xmx1024m"
 
@@ -45,9 +49,7 @@ spec:
               memory: "1024Mi"
               cpu: "500m"
 
-          volumeMounts:
-            - name: logs
-              mountPath: /app/logs
+              # ← REMOVED volumeMounts (no file logging)
 
           readinessProbe:
             httpGet:
@@ -72,8 +74,5 @@ spec:
             failureThreshold: 30
             periodSeconds: 10
 
-      volumes:
-        - name: logs
-          emptyDir: {}
-
+            # ← REMOVED volumes (no file logging)
       restartPolicy: Always

@@ -1,0 +1,65 @@
+name: Deploy Spring Boot to AWS (Terraform + ECS)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 3. Login to Amazon ECR
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      # 4. Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-ex2-repo .
+
+      # 5. Tag Docker image
+      - name: Tag Docker image
+        run: |
+          docker tag my-ex2-repo:latest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo:latest
+
+      # 6. Push image to ECR
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo:latest
+
+      # 7. Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # 8. Terraform Init
+      - name: Terraform Init
+        run: terraform init
+
+      # 9. Terraform Validate
+      - name: Terraform Validate
+        run: terraform validate
+
+      # 10. Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan
+
+      # 11. Terraform Apply
+      - name: Terraform Apply
+        run: terraform apply -auto-approve

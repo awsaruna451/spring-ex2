@@ -17,7 +17,7 @@ public class ExampleController {
         log.warn("Initiate the spring-ex2 api");
         log.debug("Initiate the spring-ex2 api");
 
-       return ResponseEntity.ok("say hello from spring-ex2");
+       return ResponseEntity.ok("Hi hello from spring-ex2!!!!!!!!!!!!");
     }
 
 
