@@ -21,45 +21,50 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 3. Login to Amazon ECR
+      # 3. Setup Terraform (moved up — needed to create ECR repo first)
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false  # Required to capture terraform output cleanly
+
+      # 4. Terraform Init
+      - name: Terraform Init
+        run: terraform -chdir=terraform init
+
+      # 5. Terraform Validate
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate
+
+      # 6. Terraform Plan
+      - name: Terraform Plan
+        run: terraform -chdir=terraform plan
+
+      # 7. Terraform Apply — creates ECR repo + ECS infra
+      - name: Terraform Apply
+        run: terraform -chdir=terraform apply -auto-approve
+
+      # 8. Capture ECR URL from Terraform output
+      - name: Get ECR repository URL
+        id: ecr
+        run: |
+          ECR_URL=$(terraform -chdir=terraform output -raw ecr_repository_url)
+          echo "url=$ECR_URL" >> $GITHUB_OUTPUT
+
+      # 9. Login to Amazon ECR
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      # 4. Build Docker image
+      # 10. Build Docker image
       - name: Build Docker image
-        run: |
-          docker build -t my-ex2-repo .
+        run: docker build -t my-ex2-repo .
 
-      # 5. Tag Docker image
+      # 11. Tag Docker image
       - name: Tag Docker image
-        run: |
-          docker tag my-ex2-repo:latest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo:latest
+        run: docker tag my-ex2-repo:latest ${{ steps.ecr.outputs.url }}:latest
 
-      # 6. Push image to ECR
+      # 12. Push Docker image to ECR
       - name: Push Docker image
-        run: |
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo:latest
-
-      # 7. Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # 8. Terraform Init
-      - name: Terraform Init
-        run: terraform init
-
-      # 9. Terraform Validate
-      - name: Terraform Validate
-        run: terraform validate
-
-      # 10. Terraform Plan
-      - name: Terraform Plan
-        run: terraform plan
-
-      # 11. Terraform Apply
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: docker push ${{ steps.ecr.outputs.url }}:latest
