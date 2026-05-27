@@ -41,7 +41,8 @@ jobs:
 
       # 7. Terraform Apply — creates ECR repo + ECS infra
       - name: Terraform Apply
-        run: terraform -chdir=terraform apply -auto-approve
+        run: terraform -chdir=terraform destroy -auto-approve
+
 
       # 8. Capture ECR URL from Terraform output
       - name: Get ECR repository URL
