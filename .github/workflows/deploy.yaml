@@ -51,23 +51,28 @@ jobs:
           ECR_URL=$(terraform -chdir=terraform output -raw ecr_repository_url)
           echo "url=$ECR_URL" >> $GITHUB_OUTPUT
 
-      # 9. Login to Amazon ECR
+      # 9. Set ECR URL
+      - name: Set ECR URL
+        run: |
+          ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
+          REGION=$(echo "${{ secrets.AWS_REGION }}" | tr -d '[:space:]')
+          echo "ECR_URL=${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-ex2-repo" >> $GITHUB_ENV
+
+      # 10. Login to Amazon ECR
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      # 10. Build Docker image
+      # 11. Build Docker image
       - name: Build Docker image
         run: docker build -t my-ex2-repo .
 
-      # 11. Tag Docker image
+      # 12. Tag Docker image
       - name: Tag Docker image
-        run: |
-          ECR_URL="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo"
-          docker tag my-ex2-repo:latest $ECR_URL:latest
+        run: docker tag my-ex2-repo:latest ${{ env.ECR_URL }}:latest
 
-      # 12. Push Docker image to ECR
+      # 13. Push Docker image to ECR
       - name: Push Docker image
-        run: docker push ${{ steps.ecr.outputs.url }}:latest
+        run: docker push ${{ env.ECR_URL }}:latest
