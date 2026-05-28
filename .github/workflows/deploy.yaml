@@ -64,7 +64,9 @@ jobs:
 
       # 11. Tag Docker image
       - name: Tag Docker image
-        run: docker tag my-ex2-repo:latest ${{ steps.ecr.outputs.url }}:latest
+        run: |
+          ECR_URL="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-ex2-repo"
+          docker tag my-ex2-repo:latest $ECR_URL:latest
 
       # 12. Push Docker image to ECR
       - name: Push Docker image
