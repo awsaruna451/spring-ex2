@@ -42,7 +42,7 @@ jobs:
       - name: Terraform Apply
         id: tf-apply                               # ← id needed for the output below
         run: |
-          terraform -chdir=terraform apply -auto-approve
+          terraform -chdir=terraform destroy -auto-approve
           echo "applied=true" >> $GITHUB_OUTPUT    # ← tells cleanup job infra exists
 
       - name: Get ECR URL
