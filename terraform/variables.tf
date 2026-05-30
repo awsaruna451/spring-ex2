@@ -45,7 +45,7 @@ variable "private_subnet_cidrs" {
 variable "private_subnet_count" {
   description = "Number of private subnets to create"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "account_id" {
