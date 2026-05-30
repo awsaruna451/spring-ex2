@@ -4,20 +4,20 @@ on:
   push:
     branches: [ "main" ]
 
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPO_NAME: my-ex2-repo
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # ── Expose outputs so the cleanup job can use them ──────────────────
     outputs:
-      ecr_url: ${{ steps.set-ecr-url.outputs.ecr_url }}
       terraform_applied: ${{ steps.tf-apply.outputs.applied }}
 
     steps:
-      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -25,82 +25,60 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 3. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      # 4. Terraform Init
       - name: Terraform Init
         run: terraform -chdir=terraform init
 
-      # 5. Terraform Validate
       - name: Terraform Validate
         run: terraform -chdir=terraform validate
 
-      # 6. Terraform Plan
       - name: Terraform Plan
         run: terraform -chdir=terraform plan
 
-      # 7. Terraform Apply — FIXED (was `destroy` before!)
       - name: Terraform Apply
-        id: tf-apply
+        id: tf-apply                               # ← id needed for the output below
         run: |
           terraform -chdir=terraform apply -auto-approve
-          echo "applied=true" >> $GITHUB_OUTPUT   # mark that infra now exists
+          echo "applied=true" >> $GITHUB_OUTPUT    # ← tells cleanup job infra exists
 
-      # 8. Capture ECR URL from Terraform output
-      - name: Get ECR repository URL
-        id: ecr
-        run: |
-          ECR_URL=$(terraform -chdir=terraform output -raw ecr_repository_url)
-          echo "url=$ECR_URL" >> $GITHUB_OUTPUT
-
-      # 9. Set ECR URL (expose as job output too, for cleanup job)
-      - name: Set ECR URL
-        id: set-ecr-url
+      - name: Get ECR URL
         run: |
           ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
           REGION=$(echo "${{ secrets.AWS_REGION }}" | tr -d '[:space:]')
-          URL="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-ex2-repo"
-          echo "ECR_URL=${URL}" >> $GITHUB_ENV
-          echo "ecr_url=${URL}" >> $GITHUB_OUTPUT   # also expose as job output
+          echo "ECR_URL=${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${{ env.ECR_REPO_NAME }}" >> $GITHUB_ENV
 
-      # 10. Login to Amazon ECR
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      # 11. Build Docker image
       - name: Build Docker image
-        run: docker build -t my-ex2-repo .
+        run: docker build -t ${{ env.ECR_REPO_NAME }} .
 
-      # 12. Tag Docker image
       - name: Tag Docker image
-        run: docker tag my-ex2-repo:latest ${{ env.ECR_URL }}:latest
+        run: docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:latest
 
-      # 13. Push Docker image to ECR
       - name: Push Docker image
         run: docker push ${{ env.ECR_URL }}:latest
 
-  # ════════════════════════════════════════════════════════════════════════
-  # CLEANUP JOB — runs ONLY when the deploy job above fails
-  # ════════════════════════════════════════════════════════════════════════
+  # ══════════════════════════════════════════════════════════════
+  # CLEANUP — triggers automatically when deploy job fails
+  # ══════════════════════════════════════════════════════════════
   cleanup-on-failure:
     name: Auto Cleanup on Failure
     runs-on: ubuntu-latest
-    needs: deploy               # depends on deploy job
-    if: failure()               # ← only triggers when deploy fails
+    needs: deploy
+    if: failure()                                  # ← only runs when deploy fails
 
     steps:
-      # 1. Checkout — needed to access terraform/ directory
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Configure AWS credentials (same as deploy job)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -108,42 +86,37 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 3. Setup Terraform (needed to run destroy)
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      # 4. Terraform Init (required before destroy)
-      - name: Terraform Init
+      - name: Terraform Init                       # ← reads state FROM S3
         run: terraform -chdir=terraform init
 
-      # 5. Terraform Destroy — tears down everything Terraform created
-      #    Only runs if tf-apply actually succeeded (infra was provisioned)
-      - name: Terraform Destroy
+      - name: Terraform Destroy                    # ← destroys VPC, ALB, ECR, ECS
         if: needs.deploy.outputs.terraform_applied == 'true'
         run: terraform -chdir=terraform destroy -auto-approve
 
-      # 6. Delete untagged ECR images left over from failed Docker push
       - name: Clean up untagged ECR images
         run: |
           IMAGES=$(aws ecr list-images \
-            --repository-name my-ex2-repo \
+            --repository-name ${{ env.ECR_REPO_NAME }} \
             --filter tagStatus=UNTAGGED \
             --query 'imageIds[*]' \
             --output json 2>/dev/null || echo "[]")
 
           if [ "$IMAGES" != "[]" ] && [ -n "$IMAGES" ]; then
-            echo "Removing untagged images..."
+            echo "Deleting untagged images..."
             aws ecr batch-delete-image \
-              --repository-name my-ex2-repo \
+              --repository-name ${{ env.ECR_REPO_NAME }} \
               --image-ids "$IMAGES" || true
           else
-            echo "No untagged images to clean up."
+            echo "No untagged images found."
           fi
 
-      # 7. (Optional) Notify via Slack / Teams / Email
-      - name: Notify failure and cleanup
+      - name: Log cleanup result
+        if: always()
         run: |
-          echo "::error::Deployment FAILED. Terraform destroy completed. Check logs:"
-          echo "::error::${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::error::Deploy failed — Terraform destroy completed."
+          echo "::error::Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
