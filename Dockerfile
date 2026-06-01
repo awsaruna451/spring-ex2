@@ -10,7 +10,7 @@ COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-jre-jammy AS runner
+FROM --platform=linux/amd64 eclipse-temurin:17-jre-jammy AS runner
 
 WORKDIR /app
 

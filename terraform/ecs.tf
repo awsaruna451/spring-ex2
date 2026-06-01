@@ -14,15 +14,32 @@ resource "aws_ecs_task_definition" "app" {
     {
       name  = "my-ex2-repo"
       image = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/my-ex2-repo:latest"
-
+  
       portMappings = [
         {
           containerPort = 8181
+          protocol      = "tcp"
         }
       ]
+
+      logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = "/ecs/my-ex2-repo"
+        "awslogs-region"        = var.region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
     }
   ])
 }
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/my-ex2-repo"   # ← define the name here
+  retention_in_days = 7
+}
+
+
 
 resource "aws_ecs_service" "service" {
   name            = "ecs-service"
@@ -34,7 +51,7 @@ resource "aws_ecs_service" "service" {
    network_configuration {
     subnets         = aws_subnet.private[*].id 
     security_groups = [aws_security_group.ecs.id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -42,4 +59,8 @@ resource "aws_ecs_service" "service" {
     container_name   = "my-ex2-repo"
     container_port   = 8181
   }
+  # Ensure ALB and target group are ready before service starts
+  depends_on = [
+    aws_lb_listener.http_listener
+  ]
 }

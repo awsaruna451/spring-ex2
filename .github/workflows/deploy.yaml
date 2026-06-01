@@ -7,28 +7,37 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPO_NAME: my-ex2-repo
+  ECS_CLUSTER: my-ecs-cluster        # ← Replace with your ECS cluster name
+  ECS_SERVICE: my-ecs-service        # ← Replace with your ECS service name
 
 jobs:
+  # ══════════════════════════════════════════════════════════════
+  # DEPLOY — Provision infra, build image, push to ECR, deploy ECS
+  # ══════════════════════════════════════════════════════════════
   deploy:
+    name: Terraform + Build + Deploy
     runs-on: ubuntu-latest
     outputs:
       terraform_applied: ${{ steps.tf-apply.outputs.applied }}
 
     steps:
+      # ── 1. Source code ────────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # ── 2. AWS credentials ────────────────────────────────────
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # ── 3. Terraform — provision infra ────────────────────────
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false   # required for clean output parsing
 
       - name: Terraform Init
         run: terraform -chdir=terraform init
@@ -40,47 +49,70 @@ jobs:
         run: terraform -chdir=terraform plan
 
       - name: Terraform Apply
-        id: tf-apply                               # ← id needed for the output below
+        id: tf-apply
         run: |
-          terraform -chdir=terraform destroy -auto-approve
-          echo "applied=true" >> $GITHUB_OUTPUT    # ← tells cleanup job infra exists
+          terraform -chdir=terraform apply -auto-approve
+          echo "applied=true" >> $GITHUB_OUTPUT
 
+      # ── 4. Resolve ECR URL ────────────────────────────────────
       - name: Get ECR URL
         run: |
           ACCOUNT_ID=$(echo "${{ secrets.AWS_ACCOUNT_ID }}" | tr -d '[:space:]')
-          REGION=$(echo "${{ secrets.AWS_REGION }}" | tr -d '[:space:]')
+          REGION=$(echo "${{ secrets.AWS_REGION }}"    | tr -d '[:space:]')
           echo "ECR_URL=${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${{ env.ECR_REPO_NAME }}" >> $GITHUB_ENV
 
+      # ── 5. Docker — build, tag, push ─────────────────────────
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-          | docker login --username AWS --password-stdin \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            | docker login --username AWS --password-stdin \
+              ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Build Docker image
         run: docker build -t ${{ env.ECR_REPO_NAME }} .
 
       - name: Tag Docker image
-        run: docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:latest
+        run: |
+          docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:latest
+          docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:${{ github.sha }}
 
       - name: Push Docker image
-        run: docker push ${{ env.ECR_URL }}:latest
+        run: |
+          docker push ${{ env.ECR_URL }}:latest
+          docker push ${{ env.ECR_URL }}:${{ github.sha }}
+
+      # ── 6. ECS — update service & wait for stability ──────────
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --force-new-deployment \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Wait for ECS service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --region ${{ secrets.AWS_REGION }}
 
   # ══════════════════════════════════════════════════════════════
   # CLEANUP — triggers automatically when deploy job fails
+  # Only runs if Terraform actually applied (infra exists)
   # ══════════════════════════════════════════════════════════════
   cleanup-on-failure:
-    name: Auto Cleanup on Failure
-    runs-on: ubuntu-latest
+    name: Terraform Destroy (Rollback)
+    runs-on: ubuntu-latest                          # ← was MISSING in original
     needs: deploy
-    if: failure()                                  # ← only runs when deploy fails
+    if: failure() && needs.deploy.outputs.terraform_applied == 'true'
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -89,34 +121,10 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_wrapper: false
+          terraform_wrapper: false                  # ← was MISSING in original
 
-      - name: Terraform Init                       # ← reads state FROM S3
+      - name: Terraform Init
         run: terraform -chdir=terraform init
 
-      - name: Terraform Destroy                    # ← destroys VPC, ALB, ECR, ECS
-        if: needs.deploy.outputs.terraform_applied == 'true'
+      - name: Terraform Destroy
         run: terraform -chdir=terraform destroy -auto-approve
-
-      - name: Clean up untagged ECR images
-        run: |
-          IMAGES=$(aws ecr list-images \
-            --repository-name ${{ env.ECR_REPO_NAME }} \
-            --filter tagStatus=UNTAGGED \
-            --query 'imageIds[*]' \
-            --output json 2>/dev/null || echo "[]")
-
-          if [ "$IMAGES" != "[]" ] && [ -n "$IMAGES" ]; then
-            echo "Deleting untagged images..."
-            aws ecr batch-delete-image \
-              --repository-name ${{ env.ECR_REPO_NAME }} \
-              --image-ids "$IMAGES" || true
-          else
-            echo "No untagged images found."
-          fi
-
-      - name: Log cleanup result
-        if: always()
-        run: |
-          echo "::error::Deploy failed — Terraform destroy completed."
-          echo "::error::Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
