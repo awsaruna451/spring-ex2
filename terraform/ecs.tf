@@ -22,14 +22,14 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
-      logConfiguration = {
+     /* logConfiguration = {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = "/ecs/my-ex2-repo"
         "awslogs-region"        = var.region
         "awslogs-stream-prefix" = "ecs"
       }
-    }
+    } */
     }
   ])
 }
