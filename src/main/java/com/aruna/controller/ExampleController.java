@@ -14,8 +14,6 @@ public class ExampleController {
     @GetMapping("/hi")
     public ResponseEntity<String> sayHello() {
         log.info("Initiate the spring-ex2 api");
-        log.warn("Initiate the spring-ex2 api");
-        log.debug("Initiate the spring-ex2 api");
 
        return ResponseEntity.ok("Hi hello from spring-ex2!!!!!!!!!!!!");
     }
