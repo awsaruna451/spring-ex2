@@ -30,7 +30,7 @@ resource "aws_lb_target_group" "app_tg" {
   }
 
   tags = {
-    Name = "app-target-group"
+    Name = "app-target-group -testing"
   }
 }
 
