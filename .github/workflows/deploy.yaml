@@ -51,8 +51,8 @@ jobs:
       - name: Terraform Apply
         id: tf-apply
         run: |
-          terraform -chdir=terraform apply -auto-approve
-          echo "applied=true" >> $GITHUB_OUTPUT
+          terraform -chdir=terraform apply -auto-approve \
+          -var="image_tag=${{ github.sha }}"
 
       # ── 4. Resolve ECR URL ────────────────────────────────────
       - name: Get ECR URL
@@ -69,17 +69,14 @@ jobs:
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
       - name: Build Docker image
-        run: docker build -t ${{ env.ECR_REPO_NAME }} .
+        run: docker build -t $ECR_URL:${{ github.sha }} .
 
       - name: Tag Docker image
         run: |
-          docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:latest
-          docker tag ${{ env.ECR_REPO_NAME }}:latest ${{ env.ECR_URL }}:${{ github.sha }}
+          docker tag ${{ env.ECR_URL }}:${{ github.sha }}
 
       - name: Push Docker image
-        run: |
-          docker push ${{ env.ECR_URL }}:latest
-          docker push ${{ env.ECR_URL }}:${{ github.sha }}
+        run: docker push ${{ env.ECR_URL }}:${{ github.sha }}
 
       # ── 6. ECS — update service & wait for stability ──────────
       - name: Deploy to ECS

@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "app" {
   container_definitions = jsonencode([
     {
       name  = "my-ex2-repo"
-      image = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/my-ex2-repo:latest"
+      image = "${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/my-ex2-repo:${var.image_tag}"
   
       portMappings = [
         {
