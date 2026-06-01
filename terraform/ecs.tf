@@ -34,11 +34,6 @@ resource "aws_ecs_task_definition" "app" {
   ])
 }
 
-resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/my-ex2-repo"   # ← define the name here
-  retention_in_days = 7
-}
-
 
 
 resource "aws_ecs_service" "service" {
